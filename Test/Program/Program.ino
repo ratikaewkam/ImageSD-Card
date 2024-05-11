@@ -13,22 +13,37 @@ void setup() {
     Serial.println("SD card initialization failed!");
     return;
   }
-
   Serial.println("SD card initialized.");
 
   // Read BMP file size
-  int fileSize = readSize("IMAGE/TABLE.BMP");
+  int fileSize = readSize("IMAGE/PIXEL.BMP");
   Serial.print("BMP File Size: ");
   Serial.print(fileSize);
   Serial.println(" bytes");
 
-  int w = readWidth("IMAGE/TABLE.BMP");
-  int h = readHeight("IMAGE/TABLE.BMP");
+  // Read w, h
+  int w = readWidth("IMAGE/PIXEL.BMP");
+  int h = readHeight("IMAGE/PIXEL.BMP");
   Serial.print("Image: ");
   Serial.print(w);
   Serial.print("x");
   Serial.print(h);
   Serial.println(" px");
+
+  // Read Bit Count
+  int bitCount = readBitCount("IMAGE/PIXEL.BMP");
+  Serial.print("Bits per pixel: ");
+  Serial.println(bitCount);
+  
+
+  File f = SD.open("IMAGE/PIXEL.BMP");
+  f.seek(0);
+  for (int i=0;i<238;i++) {
+    uint8_t data = f.read();
+    Serial.print(i);
+    Serial.print(": ");
+    Serial.println(data);
+  }
 }
 
 void loop() {
@@ -72,7 +87,7 @@ int readWidth(char* fileName) {
    */
   file.seek(18); // Start of width (4 bytes)
 
-  // Read file size (4 bytes)
+  // Read width (4 bytes)
   uint32_t w = file.read();
   
   w |= file.read() << 8;
@@ -96,7 +111,7 @@ int readHeight(char* fileName) {
    */
   file.seek(22); // Start of height (4 bytes)
 
-  // Read file size (4 bytes)
+  // Read height (4 bytes)
   uint32_t h = file.read();
   
   h |= file.read() << 8;
@@ -106,4 +121,23 @@ int readHeight(char* fileName) {
   file.close();
 
   return h;
+}
+
+int readBitCount(char* fileName) {
+   File file = SD.open(fileName, FILE_READ);
+
+   if (!file) {
+    Serial.println("Failed to open BMP file!");
+  }
+
+  file.seek(28); // Start of bit count (2 bytes)
+
+  // Read bit count (2 bytes)
+  uint16_t bc = file.read();
+  
+  bc |= file.read() << 8;
+
+  file.close();
+
+  return bc;
 }
