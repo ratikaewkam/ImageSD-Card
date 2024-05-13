@@ -35,6 +35,9 @@ void setup() {
   Serial.print("Bits per pixel: ");
   Serial.println(bitCount);
   
+  int data = readDataOffset("IMAGE/PIXEL.BMP");
+  Serial.print("Data: ");
+  Serial.println(data);
 
   File f = SD.open("IMAGE/PIXEL.BMP");
   f.seek(0);
@@ -140,4 +143,28 @@ int readBitCount(char* fileName) {
   file.close();
 
   return bc;
+}
+
+int readDataOffset(char* fileName) {
+  File file = SD.open(fileName, FILE_READ);
+
+  if (!file) {
+    Serial.println("Failed to open BMP file!");
+  }
+
+  /*
+   * Seek to the position where the data offset is stored in the BMP header
+   */
+  file.seek(10); // Start of data offset (4 bytes)
+
+  // Read height (4 bytes)
+  uint32_t data = file.read();
+  
+  data |= file.read() << 8;
+  data |= file.read() << 16;
+  data |= file.read() << 24;
+
+  file.close();
+
+  return data;
 }
